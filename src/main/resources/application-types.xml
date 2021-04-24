@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="american_flights_json" format="json">
+      <types:shape format="weave" example="americanResponse.json"><![CDATA[%dw 2.0
+
+type american_flights_json = Array<{|  ID: Number {"typeId": "int"},   code: String,   price: Number {"typeId": "int"},   departureDate: String,   origin: String,   destination: String,   emptySeats: Number {"typeId": "int"},   plane: {|    "type": String,     totalSeats: Number {"typeId": "int"}  |}|}> {"example": "[{\\\"ID\\\":1,\\\"code\\\":\\\"ER38sd\\\",\\\"price\\\":400,\\\"departureDate\\\":\\\"2017\\/07\\/26\\\",\\\"origin\\\":\\\"CLE\\\",\\\"destination\\\":\\\"SFO\\\",\\\"emptySeats\\\":0,\\\"plane\\\":{\\\"type\\\":\\\"Boeing 737\\\",\\\"totalSeats\\\":150}},{\\\"ID\\\":2,\\\"code\\\":\\\"ER45if\\\",\\\"price\\\":540.99,\\\"departureDate\\\":\\\"2017\\/07\\/27\\\",\\\"origin\\\":\\\"SFO\\\",\\\"destination\\\":\\\"ORD\\\",\\\"emptySeats\\\":54,\\\"plane\\\":{\\\"type\\\":\\\"Boeing 777\\\",\\\"totalSeats\\\":300}}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="american_flight_json" format="json">
+      <types:shape format="weave" example="americanFlight.json"><![CDATA[%dw 2.0
+
+type american_flight_json = {|
+  ID: Number {"typeId": "int"}, 
+  code: String, 
+  price: Number {"typeId": "int"}, 
+  departureDate: String, 
+  origin: String, 
+  destination: String, 
+  emptySeats: Number {"typeId": "int"}, 
+  plane: {|
+    "type": String, 
+    totalSeats: Number {"typeId": "int"}
+  |}
+|} {"example": "{\\\"ID\\\":1,\\\"code\\\":\\\"ER38sd\\\",\\\"price\\\":400,\\\"departureDate\\\":\\\"2017\\/07\\/26\\\",\\\"origin\\\":\\\"CLE\\\",\\\"destination\\\":\\\"SFO\\\",\\\"emptySeats\\\":0,\\\"plane\\\":{\\\"type\\\":\\\"Boeing 737\\\",\\\"totalSeats\\\":150}}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="american_flight_No_Id_json" format="json">
+      <types:shape format="weave" example="americanFlightNoId.json"><![CDATA[%dw 2.0
+
+type american_flight_No_Id_json = {|
+  code: String, 
+  price: Number {"typeId": "int"}, 
+  departureDate: String, 
+  origin: String, 
+  destination: String, 
+  emptySeats: Number {"typeId": "int"}, 
+  plane: {|
+    "type": String, 
+    totalSeats: Number {"typeId": "int"}
+  |}
+|} {"example": "{\\\"code\\\":\\\"ER38sd\\\",\\\"price\\\":400,\\\"departureDate\\\":\\\"2017\\/07\\/26\\\",\\\"origin\\\":\\\"CLE\\\",\\\"destination\\\":\\\"SFO\\\",\\\"emptySeats\\\":0,\\\"plane\\\":{\\\"type\\\":\\\"Boeing 737\\\",\\\"totalSeats\\\":150}}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#c88f3c2d-db96-44be-9da2-573e185bedd9">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="american_flights_json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#bc86f586-1f98-457a-bf01-cb920214fc02">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="american_flight_json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#d3038b94-5f1f-4727-9921-14e6a2f11787">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="american_flight_No_Id_json"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#9ea93186-581a-4b8c-94bb-4bef5000b03b">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="american_flight_No_Id_json"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

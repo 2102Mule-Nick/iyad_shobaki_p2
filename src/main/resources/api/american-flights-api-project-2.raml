@@ -1,0 +1,121 @@
+#%RAML 1.0
+title: American Flights API - Project 2
+
+description: |
+  This document represents **System API** for _Mule United Airport_.  At present, it supports resources ad methods that deal with flight information by _**American Airlines Flights**_.
+version: v1
+protocols:
+  - HTTP
+  - HTTPS
+
+baseUri: http://american-flights-proxy-iyad-p2.us-e2.cloudhub.io
+
+types:
+  AmericanFlight: !include /exchange_modules/68ef9520-24e9-4cf2-b2f5-620025690913/training-american-flight-data-type/1.0.1/AmericanFlightDataType.raml
+
+traits:
+  client-id-required:
+    headers:
+      client_id:
+        type: string
+        required: true
+        default: a26c706188ca4c22a150da044e5724d6
+      client_secret:
+        type: string
+        required: true
+        default: 155Aab2E0EcF4321a72592a465A217B4
+    responses:
+      401:
+        description: Unauthorized, The client_id or client_secret are not valid or the client does not have access.
+      429:
+        description: The client used all of it's request quota for the current period.
+      500:
+        description: An error ocurred, see the specific message (Only if it is a WSDL enpoint).
+      503:
+        description: Contracts Information Unreachable.
+
+
+
+/flights:
+  is: [client-id-required]
+  get:
+    displayName: Get Flights
+    description: Retrieves a list of flights
+    queryParameters:
+      destination?:
+        description: "Represents 3-letter destination city code. For eg: DFW, LGA, SYD"
+        enum: [LAX, CLE, SFO]
+        type: string
+        minLength: 3
+        maxLength: 3
+        pattern: "[A-Z]{3}"
+    responses:
+      "200":
+        description: Success
+        body:
+          application/json:
+            items:
+              type: AmericanFlight
+            examples:
+              output: !include /exchange_modules/68ef9520-24e9-4cf2-b2f5-620025690913/training-american-flights-example/1.0.1/AmericanFlightsExample.raml
+  post:
+    displayName: Add Flight
+    description: Create/Add a new flight details to existing flights
+    body:
+      application/json:
+        type: AmericanFlight
+        examples:
+          input: !include examples/AmericanFlightNoIDExample.raml
+    responses:
+      "201":
+        description: Success
+        body:
+          application/json:
+            example:
+              Affected Rows: 1
+/flights/{ID}:
+  is: [client-id-required]
+  get:
+    displayName: Get Flight by ID
+    description: Retrieves a flight based on its unique ID
+    responses:
+      "200":
+        description: Success
+        body:
+          application/json:
+            type: AmericanFlight
+            examples:
+              output: !include examples/AmericanFlightExample.raml
+ 
+  put:
+    body:
+      application/json:
+        type: AmericanFlight
+        examples: 
+          output: !include examples/AmericanFlightNoIDExample.raml
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              Affected Rows: 1
+  patch:
+    body:
+      application/json:
+        type: AmericanFlight
+        examples: 
+          output: !include examples/AmericanFlightNoIDExample.raml
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              Affected Rows: 1
+  delete:
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              Affected Rows: 1
+ 

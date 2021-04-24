@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e888070b-e02d-403c-8270-848ec712f966" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="getFlightsFlow" doc:id="c88f3c2d-db96-44be-9da2-573e185bedd9" >
+		<db:select doc:name="Select Postgres Databse" doc:id="65ff4a6e-f02f-4536-a713-b84bb09b563f" config-ref="Database_Postgresql_Config">
+			<db:sql ><![CDATA[SELECT *
+	FROM american ORDER BY american_id ASC]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="dda3ac2b-9ff9-4f3a-8939-984157a743ce" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	ID: payload01.american_id,
+	code: payload01.code,
+	price: payload01.price,
+	departureDate: payload01.departure_date,
+	origin: payload01.origin,
+	destination: payload01.destination,
+	emptySeats: payload01.empty_seats,
+	plane: {
+		"type": payload01.plane_type,
+		totalSeats: payload01.plane_total_seats
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7fd6064d-fed9-424e-a9d4-82eea8f08801" message="#[payload]" />
+	</flow>
+	<flow name="getFlightByIdFlow" doc:id="01cbf52e-6ff5-4dfe-9be1-d060fd99aa45" >
+		<db:query-single doc:name="Query single" doc:id="e7d2fe9a-93bc-4ff0-9535-453bff69278b" config-ref="Database_Postgresql_Config">
+			<db:sql ><![CDATA[SELECT *
+	FROM american
+	WHERE american_id = :flightId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	flightId: message.attributes.uriParams.'ID'//vars.'ID'
+}]]]></db:input-parameters>
+		</db:query-single>
+		<ee:transform doc:name="Transform Message" doc:id="bc86f586-1f98-457a-bf01-cb920214fc02" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	ID: payload.american_id,
+	code: payload.code default "",
+	price: payload.price default 0,
+	departureDate: payload.departure_date,
+	origin: payload.origin default "",
+	destination: payload.destination default "",
+	emptySeats: payload.empty_seats default 0,
+	plane: {
+		"type": payload.plane_type default "",
+		totalSeats: payload.plane_total_seats default 0
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="822f7ad1-02ee-4ab5-9b58-883f60037491" message="#[payload]" />
+	</flow>
+	<flow name="addFlightFlow" doc:id="154f00f8-5999-4885-b62f-a7c6de4f8df3" >
+		<ee:transform doc:name="Transform Message" doc:id="d3038b94-5f1f-4727-9921-14e6a2f11787" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+type AmericanFlight = Object {class: "com.revature.pojo.AmericanFlight"}
+type localDate = Object {class: "java.time.LocalDate"}
+---
+{
+	//Id: payload.ID as Number {class:"java.lang.Integer"},
+	code: payload.code,
+	price: payload.price as Number {class:"java.lang.Float"},
+	origin: payload.origin,
+	destination: payload.destination,
+	emptySeats: payload.emptySeats as Number {class:"java.lang.Integer"},
+	planeType: payload.plane."type" as String default "",
+	planeTotalSeats: payload.plane.totalSeats as Number {class:"java.lang.Integer"} default 1,
+	departureDate: payload.departureDate
+	
+}as AmericanFlight
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:insert doc:name="Insert" doc:id="eb3d421f-cd55-4c6f-b88b-d6b47639a5e5" config-ref="Database_Postgresql_Config">
+			<db:sql ><![CDATA[INSERT INTO american (code, price, departure_date, origin, destination, empty_seats, plane_type, plane_total_seats)
+ VALUES (:code, :price, :depDate, :origin, :dest, :emptySeats, :planeType, :planeTotalSeats);
+	]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'code': payload.code,
+	'price': payload.price,
+	'depDate': payload.departureDate,
+	'origin': payload.origin,
+	'dest': payload.destination,
+	'emptySeats': payload.emptySeats,
+	'planeType': payload.planeType,
+	'planeTotalSeats': payload.planeTotalSeats
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="894ef5c6-3b22-45d7-8266-76c17821caff">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Affected Rows": payload.affectedRows
+}
+	]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="4609aad6-5530-4132-a353-0f1a86731589" message="#[payload]"/>
+	</flow>
+	<flow name="updateFlightFlow" doc:id="cba85f17-7eca-4adb-b781-266404bbf5bb" >
+		<ee:transform doc:name="Transform Message" doc:id="9ea93186-581a-4b8c-94bb-4bef5000b03b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+type AmericanFlight = Object {class: "com.revature.pojo.AmericanFlight"}
+type localDate = Object {class: "java.time.LocalDate"}
+---
+{
+	code: payload.code,
+	price: payload.price as Number {class:"java.lang.Float"},
+	origin: payload.origin,
+	destination: payload.destination,
+	emptySeats: payload.emptySeats as Number {class:"java.lang.Integer"},
+	planeType: payload.plane."type" as String default "",
+	planeTotalSeats: payload.plane.totalSeats as Number {class:"java.lang.Integer"} default 1,
+	departureDate: payload.departureDate
+	
+}as AmericanFlight
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:update doc:name="Update" doc:id="53ceb0d5-034a-4ebd-9286-50ce5c8c0fd6" config-ref="Database_Postgresql_Config">
+			<db:sql ><![CDATA[update american 
+set code = :code, price = :price, departure_date = :depDate,
+	origin = :origin, destination = :dest, empty_seats = :emptySeats, 
+	plane_type = :planeType, plane_total_seats = :planeTotalSeats
+	where american_id = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'ID': message.attributes.uriParams.ID,
+	'code': payload.code,
+	'price': payload.price,
+	'depDate': payload.departureDate,
+	'origin': payload.origin,
+	'dest': payload.destination,
+	'emptySeats': payload.emptySeats,
+	'planeType': payload.planeType,
+	'planeTotalSeats': payload.planeTotalSeats
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="747665b1-d458-49df-a5f7-4a10a3111e48">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Affected Rows": payload.affectedRows
+}
+	]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="0a76e6a3-ba58-4667-8ff2-ac82d40477c5" />
+	</flow>
+	<flow name="deleteFlightFlow" doc:id="7e7520a9-498c-42f1-85d2-7bdedc234ac6" >
+		<db:delete doc:name="Delete" doc:id="81797513-da29-4d86-8564-5fdd8c1478e1" config-ref="Database_Postgresql_Config">
+			<db:sql ><![CDATA[DELETE FROM american
+	WHERE american_id = :flightId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	flightId: message.attributes.uriParams.'ID'
+}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="eae0ca57-dd9b-466e-95a7-bef16703c8c5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Affected Rows": payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="fcfea5e4-7bbb-42a8-919f-5117198e52c3" />
+	</flow>
+</mule>
