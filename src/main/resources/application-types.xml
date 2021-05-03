@@ -45,6 +45,22 @@ type american_flight_No_Id_json = {|
 
 ]]></types:shape>
     </types:type>
+    <types:type name="a_f_no_id_fields_names" format="json">
+      <types:shape format="weave" example="americanFlightNoIdFieldsNames.json"><![CDATA[%dw 2.0
+
+type a_f_no_id_fields_names = {|
+  code: String, 
+  price: Number {"typeId": "int"}, 
+  departure_date: String, 
+  origin: String, 
+  destination: String, 
+  empty_seats: Number {"typeId": "int"}, 
+  plane_type: String, 
+  plane_total_seats: Number {"typeId": "int"}
+|} {"example": "{\\\"code\\\":\\\"ER38sd\\\",\\\"price\\\":400,\\\"departure_date\\\":\\\"2017\\/07\\/26\\\",\\\"origin\\\":\\\"CLE\\\",\\\"destination\\\":\\\"SFO\\\",\\\"empty_seats\\\":0,\\\"plane_type\\\":\\\"Boeing 737\\\",\\\"plane_total_seats\\\":150}"}
+
+]]></types:shape>
+    </types:type>
   </types:catalog>
   <types:enrichment select="#c88f3c2d-db96-44be-9da2-573e185bedd9">
     <types:processor-declaration>
@@ -74,6 +90,32 @@ type american_flight_No_Id_json = {|
     </types:processor-declaration>
   </types:enrichment>
   <types:enrichment select="#9ea93186-581a-4b8c-94bb-4bef5000b03b">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="american_flight_No_Id_json"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#e3b0648c-a4b5-4510-9479-565c61fa54bc">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="american_flight_No_Id_json"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="a_f_no_id_fields_names"/>
+        </types:message>
+        <types:variables>
+          <types:variable name="ID" type="a_f_no_id_fields_names"/>
+        </types:variables>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#d2dfd7af-aee8-4fdd-9d87-9614c444c662">
     <types:processor-declaration>
       <types:input-event>
         <types:message>

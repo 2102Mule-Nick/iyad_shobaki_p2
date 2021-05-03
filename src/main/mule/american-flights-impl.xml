@@ -10,10 +10,27 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
 	<flow name="getFlightsFlow" doc:id="c88f3c2d-db96-44be-9da2-573e185bedd9" >
-		<db:select doc:name="Select Postgres Databse" doc:id="65ff4a6e-f02f-4536-a713-b84bb09b563f" config-ref="Database_Postgresql_Config">
-			<db:sql ><![CDATA[SELECT *
-	FROM american ORDER BY american_id ASC]]></db:sql>
+		<set-variable value="#[upper(message.attributes.queryParams.'destination' default 'all')]" doc:name="cityCode" doc:id="eb0703f7-47c6-4a9f-803c-7775e9e0d517" variableName="cityCode"/>
+		<choice doc:name="Routed based on cityCode" doc:id="7844ad6e-9f13-428a-992a-78dbd29b201a" >
+			<when expression="#[vars.cityCode != 'ALL']">
+				<db:select doc:name="Select Postgres Databse" doc:id="65ff4a6e-f02f-4536-a713-b84bb09b563f" config-ref="Database_Postgresql_Config">
+			<db:sql><![CDATA[SELECT *
+	FROM american
+	where destination = :destination
+	ORDER BY american_id ASC]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	'destination': vars.cityCode
+}]]]></db:input-parameters>
 		</db:select>
+			</when>
+			<otherwise >
+				<db:select doc:name="Select Postgres Databse" doc:id="525aa70f-6ae4-466e-88a0-432d09f24552" config-ref="Database_Postgresql_Config" >
+					<db:sql ><![CDATA[SELECT *
+	FROM american 
+	ORDER BY american_id ASC]]></db:sql>
+				</db:select>
+			</otherwise>
+		</choice>
 		<ee:transform doc:name="Transform Message" doc:id="dda3ac2b-9ff9-4f3a-8939-984157a743ce" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -190,5 +207,37 @@ output application/json
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="fcfea5e4-7bbb-42a8-919f-5117198e52c3" />
+	</flow>
+	<flow name="updateFlightPartialFlow" doc:id="0f194b01-d167-4f48-95f9-ceff176428f0" >
+		<ee:transform doc:name="Transform Message" doc:id="d2dfd7af-aee8-4fdd-9d87-9614c444c662" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var arr = payload mapObject {
+	
+"Query" : $$ ++ " = " ++ "'" ++ $ ++ "'"
+
+}pluck $ joinBy ","
+---
+{
+	"Query": "update american set " ++ arr ++ " where american_id = " ++ message.attributes.uriParams.ID
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:update doc:name="Update" doc:id="fbc75994-d4a2-4f9c-9774-b796a80dd140" config-ref="Database_Postgresql_Config">
+			<db:sql ><![CDATA[#[payload.Query]]]></db:sql>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="075e3b04-305c-4f5d-a5c2-82e82bc71409" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Affected Rows": payload.affectedRows
+}
+	]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="2a61dd6f-7108-42e6-8751-7452278f99b8" />
 	</flow>
 </mule>

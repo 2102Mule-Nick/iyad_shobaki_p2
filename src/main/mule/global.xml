@@ -1,11 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+<mule
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
-	<db:config name="Database_Postgresql_Config" doc:name="Database Config" doc:id="43a0b2c5-8d8d-465a-a91a-ecf7e43e480f" >
-		<db:generic-connection url="${db.url}" driverClassName="org.postgresql.Driver" user="${db.user}" password="${db.password}" />
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+
+
+	<db:config name="Database_Postgresql_Config"
+		doc:name="Database Config"
+		doc:id="43a0b2c5-8d8d-465a-a91a-ecf7e43e480f">
+		<db:generic-connection url="${secure::db.url}"
+			driverClassName="org.postgresql.Driver" user="${secure::db.user}"
+			password="${secure::db.password}" />
 	</db:config>
-	<configuration-properties doc:name="Configuration properties" doc:id="65fbf443-45a2-463e-9be0-42e64962f0f0" file="config.yaml" />
+
+
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="65fbf443-45a2-463e-9be0-42e64962f0f0" file="config.yaml" />
+
+
+
+	<secure-properties:config
+		name="Secure_Properties_Config" doc:name="Secure Properties Config"
+		doc:id="eaa6314b-ab2f-4c7d-8183-2abaddbaf0f9" file="config-secure.yaml"
+		key="${encrypt.key}">
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
 </mule>

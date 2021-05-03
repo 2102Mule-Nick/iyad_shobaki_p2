@@ -1,0 +1,10 @@
+  {
+    "code": "ER38sd",
+    "price": 400,
+    "departure_date": "2017/07/26",
+    "origin": "CLE",
+    "destination": "SFO",
+    "empty_seats": 0,
+    "plane_type": "Boeing 737",
+    "plane_total_seats": 150
+  }

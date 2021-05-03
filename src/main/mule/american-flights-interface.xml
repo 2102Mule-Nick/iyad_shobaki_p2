@@ -141,20 +141,54 @@ output application/json
         <flow-ref doc:name="deleteFlight" doc:id="fada66dc-1150-4eb6-8d21-f9da753b59f8" name="deleteFlightFlow" />
     </flow>
     <flow name="patch:\flights\(ID):application\json:american-flights-api-project-2-config">
-        <ee:transform>
-            <ee:variables>
-                <ee:set-variable variableName="ID">attributes.uriParams.'ID'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
+		<ee:transform doc:id="e3b0648c-a4b5-4510-9479-565c61fa54bc">
+            <ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-  message: "Flight updated successfully"
-}]]></ee:set-payload>
-            </ee:message>
+	code: payload.code,
+	price: payload.price,
+	departure_date: payload.departureDate,
+	origin: payload.origin,
+	destination: payload.destination,
+	empty_seats: payload.emptySeats,
+	plane_type: payload.plane."type",
+	plane_total_seats: payload.plane.totalSeats
+}
+]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+            </ee:variables>
         </ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="4222491f-7a89-4af1-ae87-7c35afca1f76" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+fun treeFilter(value: Any, predicate: (value:Any) -> Boolean) =
+    value  match {
+            case object is Object ->  do {
+               object mapObject ((value, key, index) -> 
+                    (key): treeFilter(value, predicate)
+                )
+                filterObject ((value, key, index) -> predicate(value))
+            }
+            case array is Array -> do {
+                    array map ((item, index) -> treeFilter(item, predicate))
+                                         filter ((item, index) -> predicate(item))                 
+            }
+            else -> $
+    }
+
+---
+payload treeFilter ((value) -> 
+    value match {
+        case v is Array| Object | Null | "" -> !isEmpty(v)
+        else -> true
+    }
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="updateFlightPartial" doc:id="8d6d1f55-97ac-4e6a-abf5-b8ae0d75171f" name="updateFlightPartialFlow"/>
     </flow>
 </mule>
