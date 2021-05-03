@@ -27,7 +27,7 @@ The American Flights API, allows the user to:
  * APIkit 1.5.1
  * Secure configuration properties module 1.2.3
  * Secure properties tool 4.2
- * Amazon web services databse "Postgresql"
+ * Amazon web services database - Postgresql 42.2.20
 
 ## Features
 

@@ -213,14 +213,15 @@ output application/json
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+
 var arr = payload mapObject {
 	
-"Query" : $$ ++ " = " ++ "'" ++ $ ++ "'"
+     "Q": $$ as String ++ " = " ++ "'" ++ $ ++ "'"
 
 }pluck $ joinBy ","
 ---
 {
-	"Query": "update american set " ++ arr ++ " where american_id = " ++ message.attributes.uriParams.ID
+	"Query": "update american set " ++ arr ++ " where american_id = " ++ message.attributes.uriParams.ID as String
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

@@ -72,17 +72,17 @@
             <classifier>mule-plugin</classifier>
         </dependency>
     	<dependency>
-            <groupId>d1924e4d-59a2-41c1-8549-91624122e18d</groupId>
-            <artifactId>american-flights-api-project-2</artifactId>
-            <version>1.0.3</version>
-            <classifier>raml</classifier>
-            <type>zip</type>
-        </dependency>
-    	<dependency>
             <groupId>com.mulesoft.modules</groupId>
             <artifactId>mule-secure-configuration-property-module</artifactId>
             <version>1.2.3</version>
             <classifier>mule-plugin</classifier>
+        </dependency>
+    	<dependency>
+            <groupId>d1924e4d-59a2-41c1-8549-91624122e18d</groupId>
+            <artifactId>american-flights-api-project-2</artifactId>
+            <version>1.0.4</version>
+            <classifier>raml</classifier>
+            <type>zip</type>
         </dependency>
     </dependencies>
 

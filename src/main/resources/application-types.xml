@@ -115,13 +115,5 @@ type a_f_no_id_fields_names = {|
       </types:output-event>
     </types:processor-declaration>
   </types:enrichment>
-  <types:enrichment select="#d2dfd7af-aee8-4fdd-9d87-9614c444c662">
-    <types:processor-declaration>
-      <types:input-event>
-        <types:message>
-          <types:payload type="american_flight_No_Id_json"/>
-        </types:message>
-      </types:input-event>
-    </types:processor-declaration>
-  </types:enrichment>
+  <types:enrichment select="#d2dfd7af-aee8-4fdd-9d87-9614c444c662"/>
 </types:mule>
