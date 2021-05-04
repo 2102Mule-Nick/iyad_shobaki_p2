@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS american (
+    american_id serial primary key not null,
+    code text not null,
+    price float not null,--NUMERIC(5, 2),
+    departure_date text not null,
+    origin text not null,
+    destination text not null,
+    empty_seats INT not null,
+    plane_type text not null,
+    plane_total_seats INT not null
+);
+
+--drop table american 
+
+INSERT INTO american (code, price, departure_date, origin, destination, empty_seats, plane_type, plane_total_seats)
+    values ('ER38sd',400,'2017-07-26','CLE','SFO',0,'Boeing 737',150);
+   
+INSERT INTO american (code, price, departure_date, origin, destination, empty_seats, plane_type, plane_total_seats)
+    values ('ER45if',540.99,'2017-07-27','SFO','ORD',54,'Boeing 777',300);
+
+    
+select * from american 
+
+update american 
+set code = 'ER22sd', price = '400.33', departure_date = '2021-07-06',
+	origin = 'CLE', destination = 'SFO', empty_seats = 5, 
+	plane_type = 'Boeing 737', plane_total_seats =150
+where american_id = 1
+ 
+select * from american a where destination = 'SFO' ORDER BY american_id ASC
